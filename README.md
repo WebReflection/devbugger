@@ -1,5 +1,7 @@
 # DevBugger
 
+<sup>**Social media photo by [Nubelson Fernandes](https://unsplash.com/@nublson) on [Unsplash](https://unsplash.com/)**</sup>
+
 A tree-shaking based approach to `D&&BUG` anything you like **only** when its state is `active` (*enabled* or simply `true`).
 
 The *binary* creates or manages a tiny module you can statically *import* anywhere:
