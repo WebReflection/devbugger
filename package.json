@@ -1,0 +1,34 @@
+{
+  "name": "devbugger",
+  "version": "0.0.0",
+  "description": "A tree-shaking friendly D&&BUG pattern with a tiny CLI helper to toggle the debugging flag on or off",
+  "bin": "./devbugger",
+  "scripts": {
+    "test": "rm -f test/devbugger.js && npm run test:create && rollup -c test/rollup.js && npm run test:off && npm run test:on && rm -f test/devbugger.js",
+    "test:create": "yes y | ./devbugger ./test/devbugger.js",
+    "test:on": "./devbugger ./test/devbugger.js --enable && rollup -c test/rollup.js",
+    "test:off": "./devbugger ./test/devbugger.js --disabled && rollup -c test/rollup.js"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.0",
+    "rollup": "^4.61.1"
+  },
+  "files": [
+    "devbugger",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "debug",
+    "debugging",
+    "tree-shaking",
+    "tree-shakeable",
+    "dead-code-elimination",
+    "bundle-size",
+    "feature-flag"
+  ],
+  "author": "Andrea Giammarchi",
+  "license": "MIT",
+  "type": "module"
+}

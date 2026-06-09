@@ -1,0 +1,153 @@
+#!/usr/bin/env sh
+
+# Prints the JS module template with the given `D` value (true|false).
+template() {
+  cat <<EOF
+// ℹ️ DO WHATEVER YOU LIKE WITH THIS FILE BUT
+//    REMEMBER TO CREATE A \`bugger\` NAMESPACE.
+
+//    The /*#__PURE__*/ annotation tells webpack/terser (and any
+//    tool that understands it) the initializer is side-effect free,
+//    so \`bugger\` can be dropped when \`D\` is \`false\`. Keep it even
+//    if you replace the object with a function or \`new MyDebugger()\`.
+
+const bugger = /*#__PURE__*/ {
+  log: console.log,
+};
+
+// ⚠️  DO NOT CHANGE THESE EXPORTS
+export const D = $1; // \`false\` to avoid bloat
+export const BUG = D && bugger;
+EOF
+}
+
+# Resolves a (possibly relative) path into an absolute one without
+# requiring the target to exist.
+resolve_path() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *)  printf '%s\n' "$(pwd)/$1" ;;
+  esac
+}
+
+usage() {
+  cat <<'EOF'
+devbugger — toggle the ability to D&&BUG anything you like.
+
+Usage:
+  devbugger <file> [--enable | --disable]
+
+Arguments:
+  <file>        Path to the devbugger module. If it does not exist you will
+                be asked whether to create it.
+
+Options:
+  --enable, --enabled    Skip the question and switch debugging ON (full bundle size)
+  --disable, --disabled  Skip the question and switch debugging OFF (minimal bundle size)
+  -h, --help             Show this help.
+
+Examples:
+  npx devbugger ./src/devbugger.js
+  npx devbugger ./src/devbugger.js --enabled
+  npx devbugger ./src/devbugger.js --disabled
+EOF
+}
+
+# Asks a yes/no question, re-prompting until a recognized answer is given.
+# Returns 0 for yes, 1 for no.
+ask() {
+  while true; do
+    printf '%s [Y/n] ' "$1"
+    read -r answer
+    case "$answer" in
+      ""|y|Y|yes|YES|Yes|ok) return 0 ;;
+      n|N|no|NO|No|nope) return 1 ;;
+      *) echo "Please answer y|Y|yes|YES|Yes|ok or n|N|no|NO|No|nope." ;;
+    esac
+  done
+}
+
+FILE=""
+STATE=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --enable|--enabled)
+      if [ "$STATE" = "disabled" ]; then
+        echo "Error: --enable and --disable cannot be used together." >&2
+        echo >&2
+        usage >&2
+        exit 1
+      fi
+      STATE="enabled"
+      ;;
+    --disable|--disabled)
+      if [ "$STATE" = "enabled" ]; then
+        echo "Error: --enable and --disable cannot be used together." >&2
+        echo >&2
+        usage >&2
+        exit 1
+      fi
+      STATE="disabled"
+      ;;
+    -h|--help)  usage; exit 0 ;;
+    *)
+      if [ -z "$FILE" ]; then
+        FILE="$arg"
+      fi
+      ;;
+  esac
+done
+
+# No file and no actionable arguments: just show the helper.
+if [ -z "$FILE" ]; then
+  usage
+  exit 0
+fi
+
+ABS_FILE=$(resolve_path "$FILE")
+
+# If the file is missing and no flag was given, confirm creation first.
+# A flag (--enabled/--disabled) means "no question asked", so we just create it.
+if [ ! -e "$ABS_FILE" ] && [ -z "$STATE" ]; then
+  if ! ask "File does not exist at $ABS_FILE. Create it?"; then
+    exit 0
+  fi
+fi
+
+# Decide the flag state (asking only when no flag was provided).
+case "$STATE" in
+  enabled)  value=true ;;
+  disabled) value=false ;;
+  *)
+    if ask "Enable the debugging flag in $ABS_FILE?"; then
+      value=true
+    else
+      value=false
+    fi
+    ;;
+esac
+
+if [ "$value" = "true" ]; then
+  label="enabled"
+else
+  label="disabled"
+fi
+
+if [ ! -e "$ABS_FILE" ]; then
+  mkdir -p "$(dirname "$ABS_FILE")"
+  template "$value" > "$ABS_FILE"
+  echo "Created $ABS_FILE with debugging $label."
+else
+  # Match the export tolerating arbitrary spacing, and bail out loudly if it
+  # is missing so we never claim success without actually changing anything.
+  pattern='export[[:space:]]+const[[:space:]]+D[[:space:]]*=[[:space:]]*(true|false)'
+  if ! grep -Eq "$pattern" "$ABS_FILE"; then
+    echo "Error: no \`export const D = true|false\` found in $ABS_FILE." >&2
+    echo "The devbugger exports must be left intact (see the README)." >&2
+    exit 1
+  fi
+  tmp="$ABS_FILE.devbugger.tmp"
+  sed -E "s/(export[[:space:]]+const[[:space:]]+D[[:space:]]*=[[:space:]]*)(true|false)/\1$value/" "$ABS_FILE" > "$tmp" && mv "$tmp" "$ABS_FILE"
+  echo "Set $ABS_FILE with debugging $label."
+fi
