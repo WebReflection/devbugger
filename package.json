@@ -1,6 +1,6 @@
 {
   "name": "devbugger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A tree-shaking friendly D&&BUG pattern with a tiny CLI helper to toggle the debugging flag on or off",
   "bin": "./devbugger",
   "scripts": {
