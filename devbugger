@@ -6,12 +6,7 @@ template() {
 // ℹ️ DO WHATEVER YOU LIKE WITH THIS FILE BUT
 //    REMEMBER TO CREATE A \`bugger\` NAMESPACE.
 
-//    The /*#__PURE__*/ annotation tells webpack/terser (and any
-//    tool that understands it) the initializer is side-effect free,
-//    so \`bugger\` can be dropped when \`D\` is \`false\`. Keep it even
-//    if you replace the object with a function or \`new MyDebugger()\`.
-
-const bugger = /*#__PURE__*/ {
+const bugger = {
   log: console.log,
 };
 
