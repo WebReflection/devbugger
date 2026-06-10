@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 
+# Keep in sync with the "version" field in package.json on each release.
+VERSION="0.1.3"
+
 # Prints the JS module template with the given `D` value (true|false).
 template() {
   cat <<EOF
@@ -26,8 +29,10 @@ resolve_path() {
 }
 
 usage() {
+  cat <<EOF
+devbugger v$VERSION — toggle the ability to D&&BUG anything you like.
+EOF
   cat <<'EOF'
-devbugger — toggle the ability to D&&BUG anything you like.
 
 Usage:
   devbugger <file> [--enable | --disable]
@@ -40,12 +45,17 @@ Options:
   --enable, --enabled    Skip the question and switch debugging ON (full bundle size)
   --disable, --disabled  Skip the question and switch debugging OFF (minimal bundle size)
   -h, --help             Show this help.
+  -v, --version          Show the version.
 
 Examples:
   npx devbugger ./src/devbugger.js
   npx devbugger ./src/devbugger.js --enabled
   npx devbugger ./src/devbugger.js --disabled
 EOF
+}
+
+version() {
+  echo "devbugger v$VERSION"
 }
 
 # Asks a yes/no question, re-prompting until a recognized answer is given.
@@ -86,6 +96,7 @@ for arg in "$@"; do
       STATE="disabled"
       ;;
     -h|--help)  usage; exit 0 ;;
+    -v|--version)  version; exit 0 ;;
     *)
       if [ -z "$FILE" ]; then
         FILE="$arg"
