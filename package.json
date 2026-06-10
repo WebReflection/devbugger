@@ -4,6 +4,11 @@
   "description": "A tree-shaking friendly D&&BUG pattern with a tiny CLI helper to toggle the debugging flag on or off",
   "bin": "./devbugger",
   "scripts": {
+    "release:patch": "npm version patch && npm run amend",
+    "release:minor": "npm version minor && npm run amend",
+    "release:major": "npm version major && npm run amend",
+    "amend": "npm run version && git add . && git commit --amend --no-edit",
+    "version": "node -e \"const fs = require('fs'); fs.writeFileSync('devbugger', fs.readFileSync('devbugger', 'utf8').replace(/VERSION=\\\".+?\\\"/,'VERSION=\\\"'+require('./package.json').version+'\\\"'));\"",
     "test": "rm -f test/devbugger.js && npm run test:create && rollup -c test/rollup.js && npm run test:off && npm run test:on && rm -f test/devbugger.js",
     "test:create": "yes y | ./devbugger ./test/devbugger.js",
     "test:on": "./devbugger ./test/devbugger.js --enable && rollup -c test/rollup.js",
